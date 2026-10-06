@@ -4,7 +4,7 @@
 
 Project page: https://assettool-labs.github.io/rojev/
 
-RoJev is a vision-language-action (VLA) model that follows natural-language instructions to play 3D multiplayer Roblox games directly from screen pixels. At every step it sees one frame and one instruction, and picks one of 16 key combinations to hold for the next 50 ms — about 37 ms per decision, fast enough to play at 20 FPS without privileged game state or high-level tool calls.
+RoJev is a vision-language-action (VLA) model that follows natural-language instructions to play complex 3D multiplayer games directly from screen pixels. Trained on Roblox gameplay, it demonstrates a general capability to perceive and act in interactive 3D environments at 20 FPS, using button-level controls without access to privileged game state or high-level tool calls.
 
 ## Repository contents
 
