@@ -105,11 +105,11 @@ tbody tr:has(td > strong:only-child) td { background: #f0f9ff; }
 </header>
 <nav><div class="inner"><a class="brand" href="#top">RoJev</a><a class="item" href="#tldr">TL;DR</a><a class="item" href="#background">Background</a><a class="item" href="#how-rojev-makes-a-decision">How RoJev makes a decision</a><a class="item" href="#training">Training</a><a class="item" href="#how-we-serve-rojev">How we serve RoJev</a><a class="item" href="#playing-nds-with-a-planner">Playing NDS with a planner</a><a class="item" href="#limits-and-next-steps">Limits and next steps</a></div></nav>
 <main>
-<section id="tldr"><div class="wrap"><h2>TL;DR</h2><div class="abstract"><p>RoJev is a vision-language-action (VLA) model that follows natural-language instructions to play complex 3D multiplayer games directly from screen pixels. Trained on Roblox gameplay, it demonstrates a general capability to perceive, reason, and act in interactive 3D environments at 20 FPS, using low-level keyboard and mouse controls without access to privileged game state or high-level tool calls.</p>
+<section id="tldr"><div class="wrap"><h2>TL;DR</h2><div class="abstract"><p>RoJev is a vision-language-action (VLA) model that follows natural-language instructions to play complex 3D multiplayer games directly from screen pixels. Trained on Roblox gameplay, it demonstrates a general capability to perceive and act in interactive 3D environments at 20 FPS, using button-level controls without access to privileged game state or high-level tool calls.</p>
 </div></div><div class="wrap wide"><figure><video preload="metadata" src="media/rojev_intro.mp4" poster="media/rojev_intro.jpg" controls muted playsinline></video></figure></div></section><section id="background"><div class="wrap"><h2>Background</h2><p>We started with following <a href="https://arxiv.org/abs/2511.08892" target="_blank" rel="noopener">Lumine</a>' s recipe, our first policy looked at a frame and <em>wrote out</em> avatar's action in next 200ms  as text. The output was a string like <code>W A ; W A ; W A ; W A</code>: the mouse movement, then the keys to hold for four 50 ms slices.</p>
 <p>It worked. The policy learned to move around the game, and later to follow instructions. But it was slow. Writing a string means decoding it token by token, and in the live game the loop topped out at about <strong>5 decisions per second</strong>. At 5 fps a lot happens between two decisions: the avatar walks off a ledge, or a fireball arrives before the model has even looked again.</p>
 <figure><video preload="metadata" src="media/lumine_stairs_fall.mp4" poster="media/lumine_stairs_fall.jpg" controls muted playsinline></video></figure><p>The idea for a fix came from <strong><a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev" target="_blank" rel="noopener">Jev</a></strong>, a decision model from TypeSafe AI that we work with. Jev never writes text. Each call gives it a state and a question, and the question lists the possible answers. Jev returns a probability for every answer in one pass, so it can only ever answer with an option that it was offered.</p>
-<p>This makes Jev fast enough to play games in real time, and people already use it that way. In each of these setups, Jev reads the game's <strong>structured state in text, not pixels</strong>, and it <strong>picks one tool call from a fixed list instead of writing a botton-level action out</strong>. Each option is a command that the harness implements in code, such as &quot;run right and jump&quot;, &quot;build a wall&quot; or &quot;attack this unit&quot;. Jev only chooses the call, and the harness carries it out in the game. The table compares the input and the output of some of these setups with RoJev:</p>
+<p>This makes Jev fast enough to play games in real time, and people already use it that way. In each of these setups, Jev reads the game's <strong>structured state in text, not pixels</strong>, and it <strong>picks one tool call from a fixed list instead of writing a button-level action out</strong>. Each option is a command that the harness implements in code, such as &quot;run right and jump&quot;, &quot;build a wall&quot; or &quot;attack this unit&quot;. Jev only chooses the call, and the harness carries it out in the game. The table compares the input and the output of some of these setups with RoJev:</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -135,7 +135,7 @@ tbody tr:has(td > strong:only-child) td { background: #f0f9ff; }
 <td>A game command (&quot;attack&quot;)</td>
 </tr>
 <tr>
-<td>Minecraft PvP (<a href="https://x.com/haoailab/status/2104302648786919643" target="_blank" rel="noopener">Hao AI Lab</a>, <a href="https://github.com/mmastrac/djev" target="_blank" rel="noopener">DJev</a>)</td>
+<td>Minecraft PvP (<a href="https://x.com/haoailab/status/2104302648786919643" target="_blank" rel="noopener">Hao AI Lab</a>)</td>
 <td>Fight state as text</td>
 <td>A combat tactic (&quot;build a wall&quot;)</td>
 </tr>
@@ -151,7 +151,7 @@ tbody tr:has(td > strong:only-child) td { background: #f0f9ff; }
 </tr>
 </tbody>
 </table></div>
-<p>RoJev plays like a player instead. At every decision, it sees one screen frame and one instruction, and it picks one of 16 key combinations to hold for the next 50 ms. The answer is a single letter, so a decision takes about 37 ms, which is fast enough for <strong>20 fps even with 480P frames as inputs</strong>. Hence the name: <strong>RoJev</strong>, a Jev-style policy for Roblox games.</p>
+<p>RoJev plays like a player instead. At every decision, it sees one screen frame and one instruction, and it picks one of 16 key combinations to hold for the next 50 ms. The answer is a single letter, so a decision takes about 37 ms, which is fast enough for <strong>20 fps even with 480p frames as inputs</strong>. Hence the name: <strong>RoJev</strong>, a Jev-style policy for Roblox games.</p>
 </div></section><section id="how-rojev-makes-a-decision"><div class="wrap"><h2>How RoJev makes a decision</h2><p>For each decision, RoJev receives these items:</p>
 <ul>
 <li>A system line: <em>&quot;Apply the question to the state. Choose exactly one of the listed options. Respond with only its uppercase letter…&quot;</em></li>
@@ -213,7 +213,7 @@ tbody tr:has(td > strong:only-child) td { background: #f0f9ff; }
 <tbody>
 <tr>
 <td>55%</td>
-<td>Five ability datasets: controls, go-to targets, beacons and directions (about 27,000 mirrored samples)</td>
+<td>Five ability datasets: controls, go-to targets, go-to beacons, target directions and beacon directions (about 27,000 mirrored samples)</td>
 </tr>
 <tr>
 <td>30%</td>
@@ -289,6 +289,7 @@ tbody tr:has(td > strong:only-child) td { background: #f0f9ff; }
 <li>Give the model a short context of more than one frame.</li>
 <li>Post-train the reasoning model, so that it plans better at about the latency of Qwen3.8-27B.</li>
 <li>Improve RoJev with reinforcement learning.</li>
+<li>Support GUI interaction with the mouse, such as menus, shops and dialog buttons.</li>
 </ul>
 </li>
 </ul>
